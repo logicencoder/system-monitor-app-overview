@@ -8,5 +8,5 @@ Thumbs.db
 .env
 __pycache__/
 logs/
-!old/
+old/
 othr/
