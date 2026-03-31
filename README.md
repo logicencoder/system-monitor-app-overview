@@ -14,7 +14,7 @@ A terminal-based system monitoring dashboard that consolidates hardware metrics,
 - **Memory Tracking** — RAM usage, swap status, and process-level consumption  
 - **Disk I/O** — Read/write throughput with per-device statistics
 - **Network Stats** — RX/TX bandwidth, connection tracking, interface details
-- **GPU Monitoring** — GPU usage, memory, temperature (NVIDIA/AMD)
+- **GPU Monitoring** — GPU usage, memory, temperature (NVIDIA tested, AMD maybe)
 - **Sensors & Temperatures** — CPU thermal zones, fan speeds, voltages
 - **Process Table** — Sortable process list with resource consumption
 - **TUI Interface** — Keyboard-driven interface with vim-style navigation
@@ -29,7 +29,7 @@ Instead of running 7 different terminals with htop, iostat, dstat, netstat, nvid
 # Download the Linux x64 binary and run
 ./system_monitor_app
 
-# Or with options
+# Optional: Set refresh rate and sort order
 ./system_monitor_app --refresh 1 --sort cpu
 ```
 
@@ -38,12 +38,17 @@ Instead of running 7 different terminals with htop, iostat, dstat, netstat, nvid
 | Key | Action |
 |-----|--------|
 | `q` / `Ctrl+C` | Quit |
-| `1-7` | Switch views (CPU, RAM, Disk, Net, GPU, Sensors, Procs) |
+| `Tab` | Switch between views (CPU → RAM → Disk → Net → GPU → Sensors → Procs) |
 | `↑/↓` | Navigate process list |
 | `Enter` | Process details |
-| `s` | Change sort column |
+| `s` | Change sort column (cpu/mem/pid/name) |
 | `r` | Refresh rate |
 | `?` | Help |
+
+## CLI Options
+
+- `--refresh N` — Update interval in seconds (default: 2)
+- `--sort FIELD` — Sort processes by: cpu, mem, pid, name (default: cpu)
 
 ## Typical Workflow
 
@@ -62,8 +67,12 @@ Instead of running 7 different terminals with htop, iostat, dstat, netstat, nvid
 - Minimal resource footprint
 - Configurable refresh intervals
 - Suitable for remote SSH sessions
-- GPU monitoring via NVML (NVIDIA) or sysfs (AMD)
+- GPU monitoring via NVML (NVIDIA tested) or sysfs (AMD maybe)
 - Sensors via lm-sensors interface
+
+## Code
+
+See `psutil/2g` or `psutil/2h` directories for related Python monitoring experiments.
 
 ## Contact
 
