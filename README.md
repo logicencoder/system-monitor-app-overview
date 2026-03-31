@@ -30,16 +30,6 @@ Instead of running 7 different terminals with htop, iostat, dstat, netstat, nvid
 ./system_monitor_app
 ```
 
-## Controls
-
-| Key | Action |
-|-----|--------|
-| `q` / `Ctrl+C` | Quit |
-| `↑/↓` | Navigate process list |
-| `C` | Sort by CPU |
-| `M` | Sort by Memory |
-| `?` | Help |
-
 ## Typical Workflow
 
 1. Launch during development or debugging sessions
