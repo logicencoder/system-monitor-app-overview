@@ -50,10 +50,6 @@ Instead of running 7 different terminals with htop, iostat, dstat, netstat, nvid
 - GPU monitoring via NVML (NVIDIA tested) or sysfs (AMD maybe)
 - Sensors via lm-sensors interface
 
-## Code
-
-See `psutil/` directory for related Python monitoring experiments.
-
 ## Contact
 
 Questions or feedback? [Get in touch](https://logicencoder.com/contact/)
