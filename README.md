@@ -17,7 +17,7 @@ A terminal-based system monitoring dashboard that consolidates hardware metrics,
 - **GPU Monitoring** — GPU usage, memory, temperature (NVIDIA tested, AMD maybe)
 - **Sensors & Temperatures** — CPU thermal zones, fan speeds, voltages
 - **Process Table** — Sortable process list with resource consumption
-- **TUI Interface** — Keyboard-driven interface with vim-style navigation
+- **TUI Interface** — Keyboard-driven interface
 
 ## Why This Exists
 
@@ -28,9 +28,6 @@ Instead of running 7 different terminals with htop, iostat, dstat, netstat, nvid
 ```bash
 # Download the Linux x64 binary and run
 ./system_monitor_app
-
-# Optional: Set refresh rate and sort order
-./system_monitor_app --refresh 1 --sort cpu
 ```
 
 ## Controls
@@ -38,17 +35,10 @@ Instead of running 7 different terminals with htop, iostat, dstat, netstat, nvid
 | Key | Action |
 |-----|--------|
 | `q` / `Ctrl+C` | Quit |
-| `Tab` | Switch between views (CPU → RAM → Disk → Net → GPU → Sensors → Procs) |
 | `↑/↓` | Navigate process list |
-| `Enter` | Process details |
-| `s` | Change sort column (cpu/mem/pid/name) |
-| `r` | Refresh rate |
+| `C` | Sort by CPU |
+| `M` | Sort by Memory |
 | `?` | Help |
-
-## CLI Options
-
-- `--refresh N` — Update interval in seconds (default: 2)
-- `--sort FIELD` — Sort processes by: cpu, mem, pid, name (default: cpu)
 
 ## Typical Workflow
 
@@ -72,7 +62,7 @@ Instead of running 7 different terminals with htop, iostat, dstat, netstat, nvid
 
 ## Code
 
-See `psutil/2g` or `psutil/2h` directories for related Python monitoring experiments.
+See `psutil/` directory for related Python monitoring experiments.
 
 ## Contact
 
