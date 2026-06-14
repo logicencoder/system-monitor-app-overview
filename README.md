@@ -2,124 +2,87 @@
 
 ![System Monitor App TUI](system-monitor-app.png)
 
-All-in-one **terminal UI** for Linux system resources. One binary replaces juggling `htop`, `iostat`, `nvidia-smi`, `sensors`, and separate network tools during debugging or load tests.
+**System Monitor App** is a keyboard-driven terminal dashboard for Linux. Instead of jumping between `htop`, `iostat`, `nvidia-smi`, `sensors`, and separate network tools, you get CPU, memory, disks, network, GPU, temperatures, services, firewall status, and a sortable process table in one full-screen TUI.
 
-**Repository contents:** prebuilt **Linux x86_64** executable + screenshot. Source is not published; behaviour is documented here and in [ARCHITECTURE.md](ARCHITECTURE.md) from the shipped binary and operator workflow.
+This repository ships a prebuilt **Linux x86_64** binary plus a screenshot. Download, `chmod +x`, run — no Python or Node runtime on the host.
 
----
+## The problem it solves
 
-## What / why / who
+When you SSH into a box to debug load, deploys, or runaway workers, context switching between half a dozen CLI tools slows you down. System Monitor App keeps the numbers you care about visible in one layout, with per-panel refresh tuned for the metric (CPU and network update faster than disk or services).
 
-| | |
-|---|---|
-| **What** | Keyboard-driven TUI showing CPU, memory, disk I/O, network, GPU, sensors, temperatures, and a sortable process table |
-| **Why** | Developers lose time alt-tabbing across terminals; unified view speeds incident response |
-| **Who** | Operator on SOL/WSL/home Linux via SSH or local console |
-
----
-
-## Key features
-
-### CPU monitoring
-
-**What:** Real-time usage with per-core breakdown and history-style graphs in the TUI.  
-**Why:** Identify single-thread hotspots vs all-core saturation.  
-**Who:** Developer profiling CPU-bound bots or SSR workers.
-
-### Memory tracking
-
-**What:** RAM usage, swap status, process-level consumption in the process table.  
-**Why:** OOM risk on small VPS instances is easier to catch early.  
-**Who:** Operator running many Python services on one box.
-
-### Disk I/O
-
-**What:** Read/write throughput with per-device statistics.  
-**Why:** Log-heavy or database workloads show disk-bound behaviour here first.  
-**Who:** Anyone syncing large trees or running DuckDB/SQLite heavy jobs.
-
-### Network stats
-
-**What:** RX/TX bandwidth, connection-oriented counters, interface-oriented details.  
-**Why:** Chain monitors and WebSocket fan-out saturate network before CPU.  
-**Who:** Operator watching ingestion pipelines.
-
-### GPU monitoring
-
-**What:** Utilization, memory, temperature where drivers expose NVML (NVIDIA tested) or sysfs paths (AMD environment-dependent).  
-**Why:** ML, rendering, or GPU-assisted workloads need thermals beside CPU.  
-**Who:** Operator on GPU-equipped hosts.
-
-### Sensors and temperatures
-
-**What:** Thermal zones, fan speeds, voltages via lm-sensors-style interfaces when present.  
-**Why:** Thermal throttling looks like “mysterious slowness” without sensor view.  
-**Who:** Bare-metal or homelab operators.
-
-### Process table
-
-**What:** Sortable process list with resource columns.  
-**Why:** Quickly find the PID eating RAM or CPU after deploying a new script.  
-**Who:** Daily driver during development sessions.
-
----
-
-## Quick start
+## Download and run
 
 ```bash
 chmod +x system_monitor_app
 ./system_monitor_app
 ```
 
-Requirements:
+**Requirements:** Linux x86_64, UTF-8 terminal, glibc (dynamically linked ELF). Copy the binary to `~/bin` or any path on your `PATH`.
 
-- Linux x86_64  
-- Terminal with UTF-8 support  
-- No Python/Node runtime — static binary  
+**Quit:** `Ctrl+C`.
+
+## What you see in the TUI
+
+Two columns of live panels. Each panel samples the kernel and optional drivers on its own interval; missing hardware simply hides or degrades that panel instead of crashing the app.
+
+### CPU
+
+Overall and per-core utilization, processor name, and frequency hints where the platform exposes them. Useful when you need to tell a single hot thread from full-box saturation.
+
+### Memory and swap
+
+RAM use, available memory, and swap pressure alongside the rest of the dashboard so OOM risk is visible before the kernel starts killing processes.
+
+### Disk I/O
+
+Per-device read/write throughput and utilization — handy when logs, databases, or large sync jobs turn a box disk-bound.
+
+### Network
+
+RX/TX rates and interface-oriented counters for spotting bandwidth spikes during ingestion or WebSocket-heavy workloads.
+
+### GPU
+
+Utilization, memory, and temperature when NVIDIA NVML or sysfs paths are available; AMD coverage depends on the host drivers.
+
+### Sensors
+
+Thermal zones, fan speeds, and voltages via lm-sensors-style interfaces when present — thermal throttling often looks like “mysterious slowness” without this view.
+
+### Process table
+
+Sortable list of top processes (default limit 20). Press **`c`** to sort by CPU or **`m`** by memory to find the PID eating resources after a deploy.
+
+### Services and firewall
+
+Systemd-oriented service status and firewall summary panels for a quick health check without leaving the monitor.
+
+### Self monitor
+
+Shows the monitor’s own CPU, memory, and I/O so you can see how much overhead the TUI adds during heavy sampling.
+
+### Alerts
+
+Threshold-based warnings (for example sensor heat) surfaced inside the layout when configured limits are crossed.
+
+## Typical session
+
+1. Launch at the start of a debugging or deploy session — locally or over SSH.
+2. Watch CPU and memory while starting services or batch jobs.
+3. Glance at GPU thermals under sustained load.
+4. Sort the process table to find or kill runaway workers.
+5. Check network and disk when ingestion or log rotation spikes.
+
+## Configuration
+
+On first run the app creates `~/.config/system_monitor/config.yaml` for panel layout, refresh intervals, and alert thresholds. Logs go to `~/.config/system_monitor/system_monitor.log`.
+
+## Related repositories
+
+See [REPOS.md](REPOS.md) for the private source tree and release workflow.
 
 ---
-
-## Typical workflow
-
-1. Launch at start of a debugging or deploy session (local or SSH).  
-2. Watch CPU/RAM while starting FastAPI bots or Node SSR.  
-3. Monitor GPU thermals during sustained load.  
-4. Use process table to kill or renice runaway workers.  
-5. Check network/disk when ingestion or log rotation spikes.  
-
----
-
-## Comparison to Hardware Monitor
-
-| | **system-monitor-app** | **hardware-monitor** |
-|---|------------------------|----------------------|
-| Interface | Terminal (SSH-friendly) | Browser WebSocket dashboard |
-| Deploy | Single binary on host | Static HTML + remote WS backend |
-| Best for | Session on the machine itself | Glance at remote server from browser |
-
----
-
-## Dev / packaging notes
-
-- **Artifact:** `system_monitor_app` ELF PIE, dynamically linked against glibc (see `file` output in repo)  
-- **Stripped binary** — internal module names not exported; feature list derived from product behaviour  
-- Suitable for copying to `~/bin` on SOL without dependency install  
-- Refresh intervals configurable inside the TUI (keyboard-driven)  
-
----
-
-## What this repo does not include
-
-- Source code or build scripts  
-- macOS/Windows builds  
-- Installer packages (deb/rpm) — copy binary manually  
-
----
-
-## Contact
 
 Questions or feedback: [logicencoder.com/contact/](https://logicencoder.com/contact/)
 
----
-
-**Made by [logicencoder](https://github.com/logicencoder)**
+**Made by [Logic Encoder](https://github.com/logicencoder)**
