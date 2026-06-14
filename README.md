@@ -83,6 +83,4 @@ See [REPOS.md](REPOS.md) for the private source tree and release workflow.
 
 ---
 
-Questions or feedback: [logicencoder.com/contact/](https://logicencoder.com/contact/)
-
-**Made by [Logic Encoder](https://github.com/logicencoder)**
+**Made by [Logic Encoder](https://logicencoder.com)** · [GitHub](https://github.com/logicencoder) · [Contact](https://logicencoder.com/contact/)
