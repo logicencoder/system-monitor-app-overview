@@ -21,7 +21,7 @@ chmod +x system_monitor_app
 
 **Quit:** `Ctrl+C`.
 
-## What you see in the TUI
+## TUI panels
 
 Two columns of live panels. Each panel samples the kernel and optional drivers on its own interval; missing hardware simply hides or degrades that panel instead of crashing the app.
 
