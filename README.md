@@ -1,14 +1,29 @@
 # System Monitor App
 
-![System Monitor App TUI](system-monitor-app.png)
+![System Monitor App — full-screen Linux TUI](system-monitor-app.png)
 
-**System Monitor App** is a keyboard-driven terminal dashboard for Linux. Instead of jumping between `htop`, `iostat`, `nvidia-smi`, `sensors`, and separate network tools, you get CPU, memory, disks, network, GPU, temperatures, services, firewall status, and a sortable process table in one full-screen TUI.
+**System Monitor App** is a keyboard-driven **terminal dashboard** for Linux. One full-screen Textual layout replaces hopping between `htop`, `iostat`, `nvidia-smi`, `sensors`, and separate network tools — CPU, memory, disks, network, GPU, thermal sensors, systemd services, firewall summary, a sortable process table, threshold alerts, and the monitor’s own overhead, all visible while you stay in SSH.
 
-This repository ships a prebuilt **Linux x86_64** binary plus a screenshot. Download, `chmod +x`, run — no Python or Node runtime on the host.
+This public repo ships a prebuilt **Linux x86_64** binary plus the screenshot above. Download, `chmod +x`, run — no Python install on the host. Source is built with Textual, Rich, and **psutil** (the same stack as the private tree under the operator’s `psutil` folder on production hosts).
 
-## The problem it solves
+- **Single-screen layout** — two scrollable columns of Rich panels; header shows OS, Python build info, core count, RAM, and session uptime.
+- **Per-panel refresh** — CPU and network tick about once per second; disk, services, and firewall sample slower so the TUI stays light.
+- **Graceful degradation** — missing GPU drivers, sensors, or firewall tools hide or soften that panel instead of crashing the session.
+- **YAML configuration** — panel order, intervals, and alert thresholds in `~/.config/system_monitor/config.yaml` on first run.
 
-When you SSH into a box to debug load, deploys, or runaway workers, context switching between half a dozen CLI tools slows you down. System Monitor App keeps the numbers you care about visible in one layout, with per-panel refresh tuned for the metric (CPU and network update faster than disk or services).
+## Tech stack
+
+| Layer | Technologies |
+|-------|--------------|
+| UI | Python 3.10+, **Textual**, **Rich** (panels, tables, progress bars) |
+| Metrics | **psutil** — CPU, memory, swap, disk I/O, network, processes |
+| GPU | NVIDIA NVML and sysfs paths when drivers expose them |
+| Sensors | lm-sensors-style thermal zones, fans, voltages; laptop battery via psutil when present |
+| Services | `systemctl` status for a curated list of common Linux units |
+| Firewall | iptables / nftables summaries and connection state counts |
+| Alerts | In-memory history, optional `notify-send`, critical lines in log file |
+| Release | Nuitka one-file **ELF** binary in this repo |
+| Hosting | Local terminal or SSH — no web server |
 
 ## Download and run
 
@@ -17,69 +32,82 @@ chmod +x system_monitor_app
 ./system_monitor_app
 ```
 
-**Requirements:** Linux x86_64, UTF-8 terminal, glibc (dynamically linked ELF). Copy the binary to `~/bin` or any path on your `PATH`.
+**Requirements:** Linux x86_64, UTF-8 terminal, glibc (dynamically linked ELF). Add the binary to `~/bin` or any directory on your `PATH`.
 
-**Quit:** `Ctrl+C`.
+**Quit:** `Ctrl+C` (restores the terminal after exit).
 
-## TUI panels
+## Screen layout
 
-Two columns of live panels. Each panel samples the kernel and optional drivers on its own interval; missing hardware simply hides or degrades that panel instead of crashing the app.
+The app opens one grid: **header** (machine summary), **left column**, **right column**, **footer**. Each column scrolls independently when panels exceed terminal height.
 
-### CPU
+Default column assignment (reorder in config):
 
-Overall and per-core utilization, processor name, and frequency hints where the platform exposes them. Useful when you need to tell a single hot thread from full-box saturation.
+| Left column | Right column |
+|-------------|--------------|
+| CPU | Self monitor |
+| GPU | Memory |
+| Process table | Disk I/O |
+| Services | Network |
+| Alerts | Sensors |
+| | Firewall |
 
-### Memory and swap
+The **Alerts** panel appends to the left column when not placed elsewhere — it always shows the last threshold events.
 
-RAM use, available memory, and swap pressure alongside the rest of the dashboard so OOM risk is visible before the kernel starts killing processes.
+## CPU panel
 
-### Disk I/O
+Overall utilization, per-core bars (configurable cores per line), load averages, CPU time breakdown (user/system/idle), processor name, frequency hints, and system uptime since boot. Colour bars shift from green through yellow to red as utilization crosses warning and critical thresholds from config.
 
-Per-device read/write throughput and utilization — handy when logs, databases, or large sync jobs turn a box disk-bound.
+## Memory panel
 
-### Network
+RAM used, available, and percent bars plus swap use — swap pressure visible next to CPU load when a deploy or batch job risks OOM.
 
-RX/TX rates and interface-oriented counters for spotting bandwidth spikes during ingestion or WebSocket-heavy workloads.
+## Disk I/O panel
 
-### GPU
+Per-device read/write throughput and utilization so log rotation, database sync, or chain indexing shows up as disk-bound before iowait shows in CPU alone.
 
-Utilization, memory, and temperature when NVIDIA NVML or sysfs paths are available; AMD coverage depends on the host drivers.
+## Network panel
 
-### Sensors
+Per-interface RX/TX rates, link state, address summary, connection counts by TCP state, and optional ping latency to configured hosts — useful when ingestion or WebSocket fan-out spikes bandwidth.
 
-Thermal zones, fan speeds, and voltages via lm-sensors-style interfaces when present — thermal throttling often looks like “mysterious slowness” without this view.
+## GPU panel
 
-### Process table
+Utilization, memory, and temperature when NVIDIA NVML or sysfs exposes them; AMD coverage depends on host drivers. Panel stays empty or minimal when no GPU is present.
 
-Sortable list of top processes (default limit 20). Press **`c`** to sort by CPU or **`m`** by memory to find the PID eating resources after a deploy.
+## Sensors panel
 
-### Services and firewall
+Thermal zones, fan speeds, and voltage lines from standard sensor interfaces. On laptops, **battery charge**, power source (AC vs battery), estimated time remaining, and low-battery alerts fold into the same panel.
 
-Systemd-oriented service status and firewall summary panels for a quick health check without leaving the monitor.
+## Process table
 
-### Self monitor
+Top processes (default limit **20**). Press **`c`** to sort by CPU or **`m`** by memory; the table refreshes and re-renders immediately. Python interpreters show the script name when available so `python3:multi_coin_monitor.py` is identifiable among many workers.
 
-Shows the monitor’s own CPU, memory, and I/O so you can see how much overhead the TUI adds during heavy sampling.
+## Services panel
 
-### Alerts
+systemd active state for common units (SSH, cron, journal, NetworkManager, databases, web stacks when installed). Quick health check without leaving the monitor.
 
-Threshold-based warnings (for example sensor heat) surfaced inside the layout when configured limits are crossed.
+## Firewall panel
 
-## Typical session
+iptables and nftables drop/reject counters plus live connection state totals — enough to see whether a spike is traffic or a newly active rule set.
 
-1. Launch at the start of a debugging or deploy session — locally or over SSH.
-2. Watch CPU and memory while starting services or batch jobs.
-3. Glance at GPU thermals under sustained load.
-4. Sort the process table to find or kill runaway workers.
-5. Check network and disk when ingestion or log rotation spikes.
+## Self monitor
+
+CPU, memory, and I/O attributed to the monitor process itself — confirms the TUI overhead while you run heavy sampling on the same box.
+
+## Alerts panel
+
+Rolling in-app list of the latest threshold breaches (CPU, memory, disk, GPU, sensors, battery). Critical events can log to `~/.config/system_monitor/logs/system_monitor.log` and optionally fire a desktop notification when enabled in config.
 
 ## Configuration
 
-On first run the app creates `~/.config/system_monitor/config.yaml` for panel layout, refresh intervals, and alert thresholds. Logs go to `~/.config/system_monitor/system_monitor.log`.
+First launch creates `~/.config/system_monitor/config.yaml` with monitor enable flags, refresh intervals, warning/critical thresholds, left/right column order, cores-per-line, and alert options. Edit YAML and restart to change layout — no rebuild required for operators using the shipped binary.
 
-## Related repositories
+## Typical SSH session
 
-See [REPOS.md](REPOS.md) for the private source tree and release workflow.
+When you land on a loaded box after a deploy, start the binary at the top of the session. Watch CPU and memory while services restart; sort the process table with **`m`** if RAM climbs; glance at disk and network if sync or log writes spike; check GPU and sensors under sustained compile or mining load. Exit with **`Ctrl+C`** when done — terminal mode restores cleanly.
+
+Private code: [system-monitor-app](https://github.com/logicencoder/system-monitor-app)
+
+See [REPOS.md](REPOS.md).
 
 ---
 
