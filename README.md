@@ -2,12 +2,14 @@
 
 ![System Monitor App — full-screen Linux TUI](system-monitor-app.png)
 
-**System Monitor App** is a keyboard-driven **terminal dashboard** for Linux. One full-screen Textual layout replaces hopping between `htop`, `iostat`, `nvidia-smi`, `sensors`, and separate network tools — CPU, memory, disks, network, GPU, thermal sensors, systemd services, firewall summary, a sortable process table, threshold alerts, and the monitor’s own overhead, all visible while you stay in SSH.
+**System Monitor App** is a keyboard-driven **terminal dashboard** for Linux — one full-screen view instead of juggling a pile of separate tools.
 
-This public repo ships a prebuilt **Linux x86_64** binary plus the screenshot above. Download, `chmod +x`, run — no Python install on the host. Source is built with Textual, Rich, and **psutil** (the same stack as the private tree under the operator’s `psutil` folder on production hosts).
+When you debug a loaded box you often end up with **five or six browser tabs** open: process list in one, disk stats in another, GPU somewhere else, sensors, network, services — and you keep **alt-tabbing and scrolling** just to answer “is CPU pegged, is RAM dying, is disk saturated?” System Monitor App puts what you actually check on **one screen**: two columns of live panels in the terminal. Glance once, sort processes with a keypress, no clicking through tabs.
 
-- **Single-screen layout** — two scrollable columns of Rich panels; header shows OS, Python build info, core count, RAM, and session uptime.
-- **Per-panel refresh** — CPU and network tick about once per second; disk, services, and firewall sample slower so the TUI stays light.
+CPU, memory, swap, disk I/O, network, GPU, thermal sensors, systemd services, firewall summary, a sortable process table, threshold alerts, and the monitor’s own overhead — all in the same SSH session.
+
+- **Single-screen layout** — two scrollable columns of Rich panels; header shows OS, core count, RAM, and session uptime.
+- **Per-panel refresh** — CPU and network tick about once per second; disk, services, and firewall sample slower so the TUI stays responsive.
 - **Graceful degradation** — missing GPU drivers, sensors, or firewall tools hide or soften that panel instead of crashing the session.
 - **YAML configuration** — panel order, intervals, and alert thresholds in `~/.config/system_monitor/config.yaml` on first run.
 
@@ -22,17 +24,20 @@ This public repo ships a prebuilt **Linux x86_64** binary plus the screenshot ab
 | Services | `systemctl` status for a curated list of common Linux units |
 | Firewall | iptables / nftables summaries and connection state counts |
 | Alerts | In-memory history, optional `notify-send`, critical lines in log file |
-| Release | Nuitka one-file **ELF** binary in this repo |
-| Hosting | Local terminal or SSH — no web server |
+| Hosting | Local terminal or SSH — no web UI, no browser tabs |
 
-## Download and run
+## Run
+
+From this repo:
 
 ```bash
 chmod +x system_monitor_app
 ./system_monitor_app
 ```
 
-**Requirements:** Linux x86_64, UTF-8 terminal, glibc (dynamically linked ELF). Add the binary to `~/bin` or any directory on your `PATH`.
+From source (private repo): `python3 system_monitor_app.py` after `pip install -r requirements.txt`.
+
+**Requirements:** Linux, UTF-8 terminal. Works locally or over SSH.
 
 **Quit:** `Ctrl+C` (restores the terminal after exit).
 
@@ -67,7 +72,7 @@ Per-device read/write throughput and utilization so log rotation, database sync,
 
 ## Network panel
 
-Per-interface RX/TX rates, link state, address summary, connection counts by TCP state, and optional ping latency to configured hosts — useful when ingestion or WebSocket fan-out spikes bandwidth.
+Per-interface RX/TX rates, link state, address summary, connection counts by TCP state, and optional ping latency to configured hosts — useful when ingestion or WebSocket-heavy workloads spike bandwidth.
 
 ## GPU panel
 
@@ -79,7 +84,7 @@ Thermal zones, fan speeds, and voltage lines from standard sensor interfaces. On
 
 ## Process table
 
-Top processes (default limit **20**). Press **`c`** to sort by CPU or **`m`** by memory; the table refreshes and re-renders immediately. Python interpreters show the script name when available so `python3:multi_coin_monitor.py` is identifiable among many workers.
+Top processes (default limit **20**). Press **`c`** to sort by CPU or **`m`** by memory; the table refreshes and re-renders immediately. Python interpreters show the script name when available so long-running workers are easy to spot among many PIDs.
 
 ## Services panel
 
@@ -99,11 +104,11 @@ Rolling in-app list of the latest threshold breaches (CPU, memory, disk, GPU, se
 
 ## Configuration
 
-First launch creates `~/.config/system_monitor/config.yaml` with monitor enable flags, refresh intervals, warning/critical thresholds, left/right column order, cores-per-line, and alert options. Edit YAML and restart to change layout — no rebuild required for operators using the shipped binary.
+First launch creates `~/.config/system_monitor/config.yaml` with monitor enable flags, refresh intervals, warning/critical thresholds, left/right column order, cores-per-line, and alert options. Edit YAML and restart to change layout.
 
 ## Typical SSH session
 
-When you land on a loaded box after a deploy, start the binary at the top of the session. Watch CPU and memory while services restart; sort the process table with **`m`** if RAM climbs; glance at disk and network if sync or log writes spike; check GPU and sensors under sustained compile or mining load. Exit with **`Ctrl+C`** when done — terminal mode restores cleanly.
+SSH in after a deploy, start the monitor once at the top of the session. Watch CPU and memory while services restart; press **`m`** if RAM climbs; glance at disk and network if sync or log writes spike; check GPU and sensors under sustained load. Everything stays on one screen — no tab circus. Exit with **`Ctrl+C`** when done.
 
 Private code: [system-monitor-app](https://github.com/logicencoder/system-monitor-app)
 
