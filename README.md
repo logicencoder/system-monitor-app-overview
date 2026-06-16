@@ -4,7 +4,7 @@
 
 **System Monitor App** is a keyboard-driven **terminal dashboard** for Linux — one full-screen view instead of juggling a pile of separate tools.
 
-When you debug a loaded box you often end up with **five or six browser tabs** open: process list in one, disk stats in another, GPU somewhere else, sensors, network, services — and you keep **alt-tabbing and scrolling** just to answer “is CPU pegged, is RAM dying, is disk saturated?” System Monitor App puts what you actually check on **one screen**: two columns of live panels in the terminal. Glance once, sort processes with a keypress, no clicking through tabs.
+When you debug a loaded box you often end up with **five or six terminal tabs** open: `htop` in one, `iostat` or disk tools in another, `nvidia-smi`, `sensors`, network watchers, maybe `systemctl` status — and you keep **switching tabs and scrolling** just to answer “is CPU pegged, is RAM dying, is disk saturated?” System Monitor App puts what you actually check on **one full-screen TUI**: two columns of live panels in the same terminal. Glance once, sort processes with a keypress, no jumping between tabs.
 
 CPU, memory, swap, disk I/O, network, GPU, thermal sensors, systemd services, firewall summary, a sortable process table, threshold alerts, and the monitor’s own overhead — all in the same SSH session.
 
@@ -24,7 +24,7 @@ CPU, memory, swap, disk I/O, network, GPU, thermal sensors, systemd services, fi
 | Services | `systemctl` status for a curated list of common Linux units |
 | Firewall | iptables / nftables summaries and connection state counts |
 | Alerts | In-memory history, optional `notify-send`, critical lines in log file |
-| Hosting | Local terminal or SSH — no web UI, no browser tabs |
+| Hosting | Local terminal or SSH — one session, no extra tabs |
 
 ## Run
 
@@ -108,7 +108,7 @@ First launch creates `~/.config/system_monitor/config.yaml` with monitor enable 
 
 ## Typical SSH session
 
-SSH in after a deploy, start the monitor once at the top of the session. Watch CPU and memory while services restart; press **`m`** if RAM climbs; glance at disk and network if sync or log writes spike; check GPU and sensors under sustained load. Everything stays on one screen — no tab circus. Exit with **`Ctrl+C`** when done.
+SSH in after a deploy, start the monitor once at the top of the session. Watch CPU and memory while services restart; press **`m`** if RAM climbs; glance at disk and network if sync or log writes spike; check GPU and sensors under sustained load. Everything stays on one screen — no terminal tab hopping. Exit with **`Ctrl+C`** when done.
 
 Private code: [system-monitor-app](https://github.com/logicencoder/system-monitor-app)
 
