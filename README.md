@@ -25,11 +25,11 @@ Service and firewall panels provide context around the machine's applications an
 
 ## Keep attention on changes
 
-Alerts draw attention to conditions the operator has chosen to watch, and the monitor's own usage remains visible. Presentation and configuration choices support different terminal environments. The current wide screenshot gives a useful overview of the combined workspace.
+Alerts draw attention to conditions the operator has chosen to watch, and the monitor's own usage remains visible. Presentation and configuration choices support different terminal environments.
 
 ## Use a consistent remote workspace
 
-The terminal interface is suited to an existing command-line session, including remote administration. Its benefit is a familiar view across related checks, with less switching among one-purpose utilities. Setup and operating commands belong with the private implementation documentation.
+The terminal interface is suited to an existing command-line session, including remote administration. Its benefit is a familiar view across related checks, with less switching among one-purpose utilities.
 
 ---
 
