@@ -1,6 +1,6 @@
 # System Monitor App
 
-![System Monitor App workspace](system-monitor-app.png)
+![System Monitor App workspace](system-monitor-app-terminal-dashboard.png)
 
 A quick host check should not require opening several monitoring utilities. System Monitor App brings resource use, processes and service information into a terminal workspace, making it useful for both local administration and remote command-line sessions.
 
